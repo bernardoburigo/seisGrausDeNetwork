@@ -111,7 +111,7 @@ app.post('/buscar', (req, res) => { //retorna o menor caminho entre dois atores
 app.get('/buscar-todos-stream', (req, res) => { //retorna todos os caminhos entre dois atores até 6 arestas em tempo real via SSE
   const { origem, destino } = req.query;
 
-  if (!origem || !destino) {
+  if (!origem || !destino) { //acaba não acontecendo, mantido mesmo assim
     res.status(400).write("event: error\ndata: Atores não informados.\n\n");
     res.end();
     return;

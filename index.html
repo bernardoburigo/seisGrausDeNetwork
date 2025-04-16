@@ -92,7 +92,7 @@
           <pre>${dados.caminho.join(" -> ")}</pre>
         `;
       } else {
-        resultado.innerHTML = `<p>${dados.erro || "Erro desconhecido"}</p>`;
+        resultado.innerHTML = `<p>${dados.erro || "Erro desconhecido"}</p>`; //feedback
       }
     }
 
@@ -115,7 +115,8 @@
                 <p><strong>Caminho ${dados.total}:</strong></p>
                 <pre>${dados.caminho.join(" -> ")}</pre>
             `;
-            resultado.innerHTML = `Buscando todos os caminhos... (caminhos encontrados: ${totalEncontrados})` + caminhosHTML;
+            resultado.innerHTML = `Buscando todos os caminhos...` + caminhosHTML;
+            //resultado.innerHTML = `Buscando todos os caminhos... (caminhos encontrados: ${totalEncontrados})` + caminhosHTML; seria o ideal, mas não consegui implementar a responsividade
         });
 
         source.addEventListener("done", (event) => {
