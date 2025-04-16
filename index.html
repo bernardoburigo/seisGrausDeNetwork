@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>6 Graus de Network</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    label, select, button {
+      display: block;
+      margin: 1rem 0;
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+    #resultado {
+      margin-top: 2rem;
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+  </style>
+
+</head>
+
+<body>
+  <h1>6 Graus de Network</h1>
+
+  <label for="ator1">Ator de origem:</label>
+  <select id="ator1"></select>
+
+  <label for="ator2">Ator de destino:</label>
+  <select id="ator2"></select>
+
+  <button onclick="buscarCaminho()">Buscar Menor Caminho </button>
+  <button onclick="buscarTodosCaminhosStreaming()">Buscar Todos os Caminhos (até 6 arestas)</button>
+
+
+  <div id="resultado"></div>
+
+  <script>
+    async function carregarAtores() { //função carrega os atores em ordem alfabética para os selects
+      const resposta = await fetch("http://localhost:3000/atores");
+      const atores = await resposta.json();
+
+      const select1 = document.getElementById("ator1");
+      const select2 = document.getElementById("ator2");
+
+      atores.forEach(ator => {
+        const option1 = document.createElement("option");
+        const option2 = document.createElement("option");
+        option1.value = option2.value = ator;
+        option1.textContent = option2.textContent = ator;
+
+        select1.appendChild(option1);
+        select2.appendChild(option2);
+      });
+    }
+
+    async function buscarCaminho() { //função envia os atores para o back e retorna a busca do menor caminho 
+      const ator1 = document.getElementById("ator1").value;
+      const ator2 = document.getElementById("ator2").value;
+      const resultado = document.getElementById("resultado");
+      resultado.innerHTML = "Buscando...";
+
+      const resposta = await fetch("http://localhost:3000/buscar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ origem: ator1, destino: ator2 })
+      });
+
+      const dados = await resposta.json();
+
+      if (dados.caminho) {
+        resultado.innerHTML = `
+          <p><strong>Conexão encontrada!</strong></p>
+          <p>Grau de separação: ${dados.graus}</p>
+          <p>Caminho:</p>
+          <pre>${dados.caminho.join(" -> ")}</pre>
+        `;
+      } else {
+        resultado.innerHTML = `<p>${dados.erro || "Erro desconhecido"}</p>`;
+      }
+    }
+
+    async function buscarTodosCaminhosStreaming() { //função envia os atores para o back e retorna todos os caminhos com até 6 arestas
+        const ator1 = document.getElementById("ator1").value;
+        const ator2 = document.getElementById("ator2").value;
+        const resultado = document.getElementById("resultado");
+        resultado.innerHTML = "Buscando todos os caminhos... (caminhos encontrados: 0)";
+    
+        let totalEncontrados = 0;
+        let caminhosHTML = "";
+
+        const source = new EventSource(`http://localhost:3000/buscar-todos-stream?origem=${encodeURIComponent(ator1)}&destino=${encodeURIComponent(ator2)}`);
+
+        source.addEventListener("caminho", (event) => {
+            console.log("Evento recebido:", event.data); //debug
+            const dados = JSON.parse(event.data);
+            totalEncontrados = dados.total;
+            caminhosHTML += `
+                <p><strong>Caminho ${dados.total}:</strong></p>
+                <pre>${dados.caminho.join(" -> ")}</pre>
+            `;
+            resultado.innerHTML = `Buscando todos os caminhos... (caminhos encontrados: ${totalEncontrados})` + caminhosHTML;
+        });
+
+        source.addEventListener("done", (event) => {
+            const dados = JSON.parse(event.data);
+            resultado.innerHTML = `<p><strong>${dados.total} caminho(s) encontrados:</strong></p>` + caminhosHTML;
+            source.close();
+        });
+
+        source.addEventListener("error", (event) => {
+            resultado.innerHTML = `<p>Erro durante a busca dos caminhos.</p>`;
+            source.close();
+        });
+    }
+
+    window.onload = carregarAtores; //chama a função que carrega os atores para os selects toda vez que a página carrega
+
+  </script>
+
+</body>
+
+</html>

@@ -3,13 +3,13 @@ class Grafo {
       this.adjacencia = new Map();
     }
   
-    adicionarVertice(vertice) {
+    adicionarVertice(vertice) { //adiciona vértice caso não exista
       if (!this.adjacencia.has(vertice)) {
         this.adjacencia.set(vertice, []);
       }
     }
   
-    adicionarAresta(v1, v2) {
+    adicionarAresta(v1, v2) { //adiciona aresta entre dois vertices existentes
       this.adicionarVertice(v1);
       this.adicionarVertice(v2);
   
@@ -17,7 +17,7 @@ class Grafo {
       this.adjacencia.get(v2).push(v1);
     }
   
-    mostrar() {
+    mostrar() { //exibe o grafo no console
       for (let [vertice, adjacentes] of this.adjacencia.entries()) {
         console.log(`${vertice} -> ${adjacentes.join(", ")}`);
       }
